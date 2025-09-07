@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uploads</title>
+    <link rel="stylesheet" href="/styles/upload.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📤 Upload Files</h1>
+            <p>Upload and organize your files</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="main-card">
+            <!-- Navigation -->
+            <div class="navigation">
+                <a href="/uploads" class="nav-link active">📤 Upload</a>
+                <a href="/data" class="nav-link">👥 Data</a>
+                <a href="/mydata" class="nav-link">📁 My Data</a>
+            </div>
+
+            <h2 class="section-title">Upload Files</h2>
+
+            <div class="success-message" id="successMessage"></div>
+
+            <!-- Create Folder Section -->
+            <div class="form-group">
+                <h3>🗂️ Create New Folder</h3>
+                <div class="input-group">
+                    <input type="text" id="folderName" placeholder="Enter folder name" class="form-input">
+                    <button onclick="createFolder()" class="btn btn-warning">
+                        📁 Create Folder
+                    </button>
+                </div>
+            </div>
+
+            <!-- File Upload Section -->
+            <div class="form-group">
+                <h3>📎 Upload Files</h3>
+                <label class="label">Select destination:</label>
+                <select name="folder" id="uploadDestination" class="select-input">
+  <option value="/">📂 Root Directory</option>
+  <% 
+    // Use a Set to avoid duplicate folder entries
+    const folderSet = new Set();
+
+    folders.forEach(folder => {
+      const parts = folder.Key.split("/"); // split by "/"
+      parts.pop(); // remove the file name (last part)
+      
+      let currentPath = "";
+      parts.forEach(part => {
+        if (part) {
+          currentPath += part + "/";
+          folderSet.add(currentPath); // store each folder path
+        }
+      });
+    });
+
+    // Render the collected unique folders
+    folderSet.forEach(folderPath => { 
+  %>
+      <option value="<%= folderPath %>">📁 <%= folderPath %></option>
+  <% }); %>
+</select>
+
+
+                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" multiple class="hidden">
+                    <div class="upload-icon">📎</div>
+                    <div class="upload-text">Click to upload files</div>
+                    <div class="upload-subtext">or drag and drop files here</div>
+                </div>
+
+                <div id="selectedFiles" class="file-list" style="display: none;">
+                    <h4>Selected Files:</h4>
+                    <div id="filesList"></div>
+                </div>
+
+                <button id="upload" type="button" class="btn btn-primary btn-full">
+                    🚀 Upload Files
+                </button>
+            </div>
+        </div>
+    </div>
+<script>
+        const fileInput = document.getElementById('fileInput');
+        const filesList = document.getElementById('filesList');
+        const selectedFilesDiv = document.getElementById('selectedFiles');
+        const uploadButton = document.getElementById('upload');
+        const successMessage = document.getElementById('successMessage');
+
+        // Function to create a folder. This backend logic is not provided, so it's a placeholder.
+        async function createFolder() {
+            const folderName = document.getElementById('folderName').value;
+            if (folderName) {
+                // Here you would call your backend endpoint to create a folder
+                console.log("Creating folder:", folderName);
+                const urlResponse=await fetch(`/createFolder?folderName=${folderName}`);
+                if(!urlResponse.ok){
+                    throw new Error(`Failed to get folder creation URL. Status: ${urlResponse.status}`);
+                }
+                const data=await urlResponse.json();
+
+                const url=data.url;
+                const folderResponse = await fetch(url, {
+                        method: "PUT",
+                        body: ''
+                    });
+                if (folderResponse.ok) {
+                    alert(`Folder "${folderName}" created successfully.`);
+                    location.reload(); // Reload to show the new folder in the dropdown
+                } else {
+                    alert(`Failed to create folder "${folderName}".`);
+                }
+
+            } else {
+                alert("Please enter a folder name.");
+            }
+        }
+
+        // Add this section to your script
+        fileInput.addEventListener('change', (event) => {
+            filesList.innerHTML = '';
+            const files = event.target.files;
+
+            if (files.length > 0) {
+                selectedFilesDiv.style.display = 'block';
+                for (const file of files) {
+                    const fileItem = document.createElement('div');
+                    fileItem.classList.add('file-item');
+                    fileItem.textContent = file.name;
+                    filesList.appendChild(fileItem);
+                }
+            } else {
+                selectedFilesDiv.style.display = 'none';
+            }
+        });
+
+        async function upload(e) {
+            e.preventDefault();
+            const files = Array.from(fileInput.files);
+            const folder = document.getElementById('uploadDestination').value;
+
+            if (files.length === 0) {
+                alert("Please select files to upload.");
+                return;
+            }
+
+            uploadButton.disabled = true;
+            uploadButton.innerText = "Uploading...";
+            successMessage.className = "success-message text-success";
+            successMessage.innerText = "";
+
+            let allUploadsSuccessful = true;
+
+            for (const file of files) {
+                try {
+                    // Step 1: Request pre-signed URL from your backend
+                    const urlResponse = await fetch(`/uploadFile?folder=${folder}&fileName=${file.name}`);
+                    
+                    if (!urlResponse.ok) {
+                        throw new Error(`Failed to get upload URL for ${file.name}. Status: ${urlResponse.status}`);
+                    }
+                    
+                    const data = await urlResponse.json();
+                    const url = data.url;
+
+                    // Step 2: Use the pre-signed URL to PUT the file content
+                    // IMPORTANT: The 'Content-Type' header must be set to match the file's type.
+                    const uploadResponse = await fetch(url, {
+                        method: "PUT",
+                        body: file,
+                        headers: {
+                            'Content-Type': file.type || 'application/octet-stream'
+                        }
+                    });
+
+                    if (uploadResponse.ok) {
+                        console.log(`✅ Uploaded ${file.name} successfully.`);
+                    } else {
+                        console.error(`❌ Failed to upload ${file.name}. Status: ${uploadResponse.status}`);
+                        allUploadsSuccessful = false;
+                    }
+
+                } catch (error) {
+                    console.error(`❌ An error occurred while uploading ${file.name}:`, error);
+                    allUploadsSuccessful = false;
+                }
+            }
+
+            // Reset the UI state regardless of success or failure
+            uploadButton.disabled = false;
+            uploadButton.innerText = "🚀 Upload Files";
+
+            if (allUploadsSuccessful) {
+                successMessage.innerText = "✅ All files uploaded successfully!";
+                successMessage.className = "success-message text-success";
+            } else {
+                successMessage.innerText = "❌ One or more files failed to upload. Check console for details.";
+                successMessage.className = "success-message text-error";
+            }
+            
+            // Clear the selected files from the input and UI list
+            fileInput.value = '';
+            filesList.innerHTML = '';
+            selectedFilesDiv.style.display = 'none';
+        }
+
+        uploadButton.addEventListener('click', upload);
+    </script>
+
+</body>
+
+</html>

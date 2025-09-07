@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data</title>
+    <link rel="stylesheet" href="/styles/data.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>👥 All Users Data</h1>
+            <p>View and browse all user files</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="main-card">
+            <!-- Navigation -->
+            <div class="navigation">
+                <a href="/uploads" class="nav-link">📤 Upload</a>
+                <a href="/data" class="nav-link active">👥 Data</a>
+                <a href="/mydata" class="nav-link">📁 My Data</a>
+            </div>
+
+            <h2 class="section-title">All Users Data</h2>
+
+            <div class="data-grid">
+                <!-- Users List -->
+                <div class="data-panel">
+                    <h3 class="panel-title">👥 Users</h3>
+                    <div class="search-box">
+                        <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
+                    </div>
+
+                    <div id="usersList">
+                        <!-- Users will be populated here -->
+                        <% users.forEach(user=> { %>
+                            <% if(user.Name!==sessionUsername) {%>
+                                <div class="user-item" data-username="<%= user.Name %>">
+                                    <button style="border: none; background-color: white; " class="user-name"
+                                        onclick="window.location.href='/userdata?username=<%=user.Name%>'"><span
+                                            class="user-icon">👤</span>
+                                        <%= user.Name %>
+                                    </button>
+                                </div>
+                                <%} }); %>
+                    </div>
+
+                </div>
+
+                <!-- Selected User Data -->
+                <div class="data-panel">
+                    <h3 class="panel-title">📄 User Files</h3>
+                    <%if(result.length==0){%>
+                        <div id="selectedUserData" class="empty-state">
+                            Select a user to view their files and folders
+                        </div>
+                        <%} else { %>
+                            <div id="selectedUserData">
+                                <h4>Files of <%= selectedUser %>:</h4>
+                                <ul class="file-list">
+                                    <% result.forEach(file=> { %>
+
+                                        <a class="file-item" style="text-decoration: none; color: black;"
+                                            href="<%= file.url %>" target="_blank">
+                                            <%= file.key %>
+                                        </a>
+
+                                        <% }); %>
+                                </ul>
+                            </div>
+                            <% } %>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userSearch = document.getElementById('userSearch');
+        const usersList = document.getElementById('usersList');
+
+        function searchUsers() {
+            const userItems = Array.from(usersList.getElementsByClassName('user-item'));
+            const query = userSearch.value.toLowerCase();
+            userItems.forEach((item) => {
+                const username = item.getAttribute('data-username').toLowerCase();
+                if (username.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            })
+        }
+        // Event listener
+        userSearch.addEventListener('input', searchUsers);
+    </script>
+</body>
+
+</html>
