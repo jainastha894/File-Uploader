@@ -3,7 +3,7 @@ import env from "dotenv";
 env.config();
 
 const db=new Pool({
-    connectionString: process.env.connectionString,
+    connectionString: process.env.CONNECTION_STRING,
     ssl: {
         rejectUnauthorized: false
     }
