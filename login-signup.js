@@ -51,7 +51,7 @@ router.post("/signup", async (req, res) => {
                 }
                 else {
                     const insertresult = await db.query("INSERT INTO users (username, password) VALUES ($1, $2) returning *", [username, hash]);
-                    console.log("insert result: ", insertresult);
+                    // console.log("insert result: ", insertresult);
                     const user = insertresult.rows[0];
 
                     

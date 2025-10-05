@@ -57,7 +57,9 @@ app.get("/uploadFile", async(req,res)=>{
     if (req.isAuthenticated()) {
         const sessionUsername=req.user.username;
         const {folder, fileName}= req.query;
+        console.log("folder:", folder, "fileName:", fileName);
         const key= folder === "/" ? fileName : `${folder}${fileName}`; 
+        console.log("key:", key);
         const url=await uploadFile(sessionUsername, key);
         console.log("Presigned URL generated:", url);
         res.json({url,key});
@@ -114,8 +116,24 @@ app.get("/data",async (req,res)=>{
         
     const users=await listBuckets()
     const sessionUsername=req.session.passport.user.username;
+    if(req.query.username){
+        const selectedUser=req.query.username;
+        const {objects, totalObjects, totalSize }=await listObjects(selectedUser);
+        const keys = objects.map(obj => obj.Key);
+
+        const result=await generatePresignedUrl(selectedUser, keys);
+        
+        res.render("data.ejs",{
+            users:users, 
+            sessionUsername:sessionUsername,
+            result: result,
+            selectedUser: selectedUser
+        });
+    }
+    else{
     res.render("data.ejs", {users:users, sessionUsername:sessionUsername, result:[]});
     }
+}
     else {
         res.redirect("/");
     }
@@ -136,34 +154,6 @@ app.post("/rename", async(req,res)=>{
         res.redirect("/mydata");
     }
 });
-
-app.get("/userdata",async(req,res)=>{
-    try{
-    if (req.isAuthenticated()) {
-        const selectedUser=req.query.username;
-        const sessionUsername=req.user.username;
-        const users=await listBuckets()
-        const {objects, totalObjects, totalSize }=await listObjects(selectedUser);
-        const keys = objects.map(obj => obj.Key);
-
-        const result=await generatePresignedUrl(selectedUser, keys);
-        
-        res.render("data.ejs",{
-            users:users, 
-            sessionUsername:sessionUsername,
-            result: result,
-            selectedUser: selectedUser
-        });
-
-
-    }
-}
-    catch(err){
-        console.log("Error in /userdata route", err);
-    }
-
-});
-
 app.listen(port, (err)=>{
     console.log("listening on port ", port);
     if(err){

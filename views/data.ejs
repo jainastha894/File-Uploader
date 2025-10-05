@@ -39,13 +39,11 @@
                         <!-- Users will be populated here -->
                         <% users.forEach(user=> { %>
                             <% if(user.Name!==sessionUsername) {%>
-                                <div class="user-item" data-username="<%= user.Name %>">
-                                    <button style="border: none; background-color: white; " class="user-name"
-                                        onclick="window.location.href='/userdata?username=<%=user.Name%>'"><span
+                                    <button style="border: none; background-color: white; " class="user-name user-item" data-username="<%= user.Name %>"
+                                        onclick="window.location.href='/data?username=<%=user.Name%>'"><span
                                             class="user-icon">👤</span>
                                         <%= user.Name %>
                                     </button>
-                                </div>
                                 <%} }); %>
                     </div>
 
