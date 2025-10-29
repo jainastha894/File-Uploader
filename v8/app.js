@@ -8,7 +8,7 @@ import { generatePresignedUrl, listBuckets, listObjects, listFolders, renameFile
 
 
 const app=express();
-const port=process.env.PORT || 8080;
+const port=8080;
 const pgSession=connectPgSimple(session);
 
 app.use(session({
