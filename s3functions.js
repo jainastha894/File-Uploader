@@ -117,7 +117,10 @@ async function listObjects(bucketName) {
         const command = new ListObjectsV2Command({ Bucket: bucketName });
         const response = await client.send(command);
 
-        let objects = response.Contents || [];  // ✅ ensure array
+        let objects = (response.Contents || []).filter(obj => {
+            // ✅ include only actual files, not folders
+            return !obj.Key.endsWith("/");
+        });
 
         objects.forEach(obj => {
             totalSize += obj.Size;
@@ -129,9 +132,10 @@ async function listObjects(bucketName) {
             totalObjects, 
             totalSize 
         };
+
     } catch (err) {
         console.log("Error in listing objects", err);
-        return { objects: [], totalObjects: 0, totalSize: 0 }; // ✅ safe fallback
+        return { objects: [], totalObjects: 0, totalSize: 0 };
     }
 }
 

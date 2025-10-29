@@ -76,6 +76,7 @@ router.post("/signup", async (req, res) => {
 })
 
 passport.use("local", new LocalStrategy(async (username, password, cb) => {
+    try{
     const checkresult = await db.query("select * from users where username= ($1)", [username]);
     if (checkresult.rows.length > 0) {
         const user = checkresult.rows[0];
@@ -93,6 +94,10 @@ passport.use("local", new LocalStrategy(async (username, password, cb) => {
     else {
         return cb("user not found");
 
+    }
+}    catch(err){
+        console.log("Error in passport local strategy:", err);
+        return cb(err);
     }
 }))
 

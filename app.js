@@ -41,14 +41,18 @@ app.get("/signup",(req,res)=>{
 })
 
 app.get("/uploads", async(req, res) => {
+    try{
     if (req.isAuthenticated()) {
-        const folders= await listObjects(req.user.username);
+        const folders= await listFolders(req.user.username);
         console.log("folders:",folders);
-        console.log("folders.objects: ",folders.objects);
-        res.render("upload.ejs",{folders:folders.objects});
+        res.render("upload.ejs",{folders:folders});
     }
     else {
         res.redirect("/");
+    }
+}
+    catch(err){
+        console.log("Error in /uploads route", err);
     }
 });
 
@@ -87,6 +91,7 @@ app.get("/createFolder", async(req,res)=>{
 })
 
 app.get("/mydata",async(req,res)=>{
+    try{
 
     if (req.isAuthenticated()) {
         
@@ -109,9 +114,14 @@ app.get("/mydata",async(req,res)=>{
     else {
         res.redirect("/");
     }
+    }
+    catch(err){
+        console.log("Error in /mydata route", err);
+    }
 })
 
 app.get("/data",async (req,res)=>{
+    try{
     if (req.isAuthenticated()) {
         
     const users=await listBuckets()
@@ -136,6 +146,10 @@ app.get("/data",async (req,res)=>{
 }
     else {
         res.redirect("/");
+    }
+}
+    catch(err){
+        console.log("Error in /data route", err);
     }
 })
 

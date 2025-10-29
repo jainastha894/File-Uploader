@@ -51,7 +51,7 @@
     const folderSet = new Set();
 
     folders.forEach(folder => {
-      const parts = folder.Key.split("/"); // split by "/"
+      const parts = folder.Prefix.split("/"); // split by "/"
       parts.pop(); // remove the file name (last part)
       
       let currentPath = "";
