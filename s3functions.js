@@ -206,10 +206,12 @@ async function listFolders(bucketName){
     try{
         const command= new ListObjectsV2Command({Bucket:bucketName, Delimiter: '/'});
         const response= await client.send(command);
-        return response.CommonPrefixes; // This will contain the folder names
+        // ensure we always return an array (empty if no folders)
+        return response.CommonPrefixes || [];
     }
     catch(err){
         console.log("Error in listing folders",err);
+        return [];
     }
 }
 
