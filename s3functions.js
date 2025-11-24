@@ -44,7 +44,7 @@ async function createBucket(bucketName) {
     let allowedOrigins = [];
     if (process.env.NODE_ENV === "production") {
       // Replace this with your actual EB domain
-      allowedOrigins.push("http://file-uploader-env.eba-pbztz7zq.ap-south-1.elasticbeanstalk.com/");
+      allowedOrigins.push("http://fileuploadingsystem.ap-south-1.elasticbeanstalk.com/");
     } else {
       // local development
       allowedOrigins.push("http://localhost:8080");
